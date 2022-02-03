@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "cc_backend_lib"
+version = "0.1.0"
+description = "A library with classes and types used througout the backend for Conflict Cartographer"
+readme = "README.md"
+homepage = "https://www.github.com/prio-data/cc_backend_lib"
+authors = ["peder2911 <pglandsverk@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pydantic = "^1.9.0"
+PyMonad = "^2.4.0"
+aiohttp = "^3.8.1"
+geojson-pydantic = "^0.3.1"
+
+[tool.poetry.dev-dependencies]
+pylint = "^2.12.2"
+jedi = "^0.18.1"
+aioresponses = "^0.7.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
