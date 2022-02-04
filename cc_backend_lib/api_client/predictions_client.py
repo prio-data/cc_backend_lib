@@ -13,6 +13,7 @@ class PredictionsClient(model_api_client.ModelApiClient[schema.prediction.Predic
 
     parameters:
         base_url (str): URL pointing to an API instance
+        path (str): Path in API that exposes users = ""
 
     A client that can be used to fetch predictions from an API.
     """
