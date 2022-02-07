@@ -2,21 +2,21 @@ import asyncio
 import unittest
 import aioresponses
 from geojson_pydantic import geometries
-from cc_backend_lib.api_client import predictions_client
-from cc_backend_lib import schema
+from cc_backend_lib.clients import predictions_client
+from cc_backend_lib import models 
 
 class TestPredictionsApi(unittest.TestCase):
 
     def test_list_success(self):
         with aioresponses.aioresponses() as m:
-            m.get("/shapes/", payload = schema.prediction.PredFeatureCollection(features = []).dict())
+            m.get("/shapes/", payload = models.prediction.PredFeatureCollection(features = []).dict())
             client = predictions_client.PredictionsClient("http://foo.bar","shapes")
             result = asyncio.run(client.list())
             self.assertTrue(result.is_right())
 
     def test_detail_success(self):
         with aioresponses.aioresponses() as m:
-            m.get("/shapes/1/", payload = schema.prediction.PredictionFeature(properties = {}, geometry = geometries.Point(coordinates = [1,1])).dict())
+            m.get("/shapes/1/", payload = models.prediction.PredictionFeature(properties = {}, geometry = geometries.Point(coordinates = [1,1])).dict())
             client = predictions_client.PredictionsClient("http://foo.bar","shapes")
             result = asyncio.run(client.detail("1"))
             self.assertTrue(result.is_right())

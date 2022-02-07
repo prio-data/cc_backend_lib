@@ -1,0 +1,41 @@
+"""
+emailer
+
+Data models related to the cc_emailer service.
+"""
+
+from typing import Optional
+from pydantic import BaseModel
+from . import time_partition, user, country
+
+class ParticipationSummary(BaseModel):
+    """
+    ParticipationSummary
+    ====================
+
+    parameters:
+        number_of_users (int): The number of users who participated
+        partition: (cc_backend_lib.models.time_partition.TimePartition)
+        country_id (Optional[int]): Subset by country
+
+    A summary of how many users participated in a given TimePartition,
+    optionally subset by country_id.
+    """
+    number_of_users: int
+    partition: time_partition.TimePartition
+    country_feature: Optional[country.Country]
+
+    @classmethod
+    def from_user_list(
+            cls: "ParticipationSummary",
+            user_list: user.UserList,
+            partition: time_partition.TimePartition,
+            country_feature: Optional[country.Country] = None) -> "ParticipationSummary":
+        """
+        from_user_list
+        """
+
+        return cls(
+            number_of_users = len(user_list.users),
+            partition       = partition,
+            country_feature = country_feature)

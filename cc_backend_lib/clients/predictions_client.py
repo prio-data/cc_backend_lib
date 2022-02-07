@@ -2,11 +2,11 @@
 import json
 import pydantic
 from pymonad.either import Left, Right, Either
-from cc_backend_lib import schema
+from cc_backend_lib import models
 from cc_backend_lib.errors import http_error
 from . import model_api_client
 
-class PredictionsClient(model_api_client.ModelApiClient[schema.prediction.PredictionFeature, schema.prediction.PredFeatureCollection]):
+class PredictionsClient(model_api_client.ModelApiClient[models.prediction.PredictionFeature, models.prediction.PredFeatureCollection]):
     """
     PredictionsClient
     =================
@@ -23,8 +23,8 @@ class PredictionsClient(model_api_client.ModelApiClient[schema.prediction.Predic
         except Exception:
             return Left(http_error.HttpError(http_code = 500, message = "Failed to deserialize item"))
 
-    def deserialize_detail(self, data:bytes)-> Either[http_error.HttpError, schema.prediction.PredictionFeature]:
-        return self._model_deserialize(data, schema.prediction.PredictionFeature)
+    def deserialize_detail(self, data:bytes)-> Either[http_error.HttpError, models.prediction.PredictionFeature]:
+        return self._model_deserialize(data, models.prediction.PredictionFeature)
 
-    def deserialize_list(self, data:bytes)-> Either[http_error.HttpError, schema.prediction.PredFeatureCollection]:
-        return self._model_deserialize(data, schema.prediction.PredFeatureCollection)
+    def deserialize_list(self, data:bytes)-> Either[http_error.HttpError, models.prediction.PredFeatureCollection]:
+        return self._model_deserialize(data, models.prediction.PredFeatureCollection)

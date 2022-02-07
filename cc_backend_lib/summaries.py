@@ -6,10 +6,10 @@ from functools import reduce
 from pymonad.maybe import Maybe, Just, Nothing
 from pymonad.either import Left, Right, Either
 
-from cc_backend_lib.api_client import predictions_client, scheduler_client, users_client
+from cc_backend_lib.clients import predictions_client, scheduler_client, users_client
 from cc_backend_lib.cache import dummy_cache, cache
 from cc_backend_lib.errors import http_error
-from cc_backend_lib import schema
+from cc_backend_lib import models
 
 T = TypeVar("T")
 
@@ -25,7 +25,7 @@ class Summaries():
         self._users = users
         self._cache = cache_class
 
-    async def participants(self, shift: int = 0, country_id: Optional[int] = None) -> Either[http_error.HttpError, schema.user.UserList]:
+    async def participants(self, shift: int = 0, country_id: Optional[int] = None) -> Either[http_error.HttpError, models.user.UserList]:
         """
         participants
         ============
@@ -35,7 +35,7 @@ class Summaries():
             country_id (Optional[int]) = None
 
         returns:
-            Either[cc_backend_lib.errors.http_error.HttpError, cc_backend_lib.schema.user.UserList]
+            Either[cc_backend_lib.errors.http_error.HttpError, cc_backend_lib.models.user.UserList]
 
         Fetches a userlist corresponding to users that participated (added
         predictions) for a given country.
@@ -57,7 +57,7 @@ class Summaries():
 
                 return authors.maybe(
                         Left(http_error.HttpError(http_code =500)),
-                        lambda authors: Right(schema.user.UserList(users= authors)))
+                        lambda authors: Right(models.user.UserList(users= authors)))
             else:
                 return author_ids
         else:
