@@ -111,9 +111,6 @@ class TestSummaries(unittest.TestCase):
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 404)
 
-        summary = asyncio.run(self.client.participants())
-        self.assertTrue(summary.is_right())
-
     def test_scheduler_error(self):
         async def fail(*_, **__):
             return Left(http_error.HttpError(http_code = 500))

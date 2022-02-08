@@ -70,14 +70,20 @@ class Summaries():
 
         author_ids = async_either.AsyncEither.from_either(
                 predictions.then(lambda preds: {p.properties["author"] for p in preds.features}))
-
         authors = (author_ids
                     .then(lambda ids: [self._users.detail(id) for id in ids]))
-
         authors = await authors.async_map(curry(helpers.expand_args,asyncio.gather))
         authors = (authors
                 .then(helpers.combine_http_errors)
                 .then(lambda a: models.user.UserList(users = a)))
+
+        country_ids = async_either.AsyncEither.from_either(
+                predictions.then(lambda preds: {p.properties["country"] for p in preds.features})
+                ).then(lambda ids: [self._countries.detail(id) for id in ids])
+        countries = await country_ids.async_map(curry(helpers.expand_args, asyncio.gather))
+        countries = (countries
+                .then(helpers.combine_http_errors)
+                .then(lambda ctries: [c.properties for c in ctries]))
 
         if country_id:
             country = await self._countries.detail(country_id)
@@ -87,5 +93,5 @@ class Summaries():
         return Either.apply(curry(lambda a, c, s: models.emailer.ParticipationSummary.from_user_list(
                 user_list = a,
                 partition = s,
-                country_feature = c
-            ))).to_arguments(authors, country, schedule)
+                countries = c 
+            ))).to_arguments(authors, countries, schedule)

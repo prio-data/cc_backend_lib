@@ -4,7 +4,7 @@ emailer
 Data models related to the cc_emailer service.
 """
 
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from . import time_partition, user, country
 
@@ -23,14 +23,14 @@ class ParticipationSummary(BaseModel):
     """
     number_of_users: int
     partition: time_partition.TimePartition
-    country_feature: Optional[country.Country]
+    countries: List[country.CountryProperties]
 
     @classmethod
     def from_user_list(
             cls: "ParticipationSummary",
             user_list: user.UserList,
             partition: time_partition.TimePartition,
-            country_feature: Optional[country.Country] = None) -> "ParticipationSummary":
+            countries: List[country.CountryProperties]) -> "ParticipationSummary":
         """
         from_user_list
         """
@@ -38,4 +38,4 @@ class ParticipationSummary(BaseModel):
         return cls(
             number_of_users = len(user_list.users),
             partition       = partition,
-            country_feature = country_feature)
+            countries       = countries)
