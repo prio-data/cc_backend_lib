@@ -17,3 +17,10 @@ class HttpError(BaseModel):
     @validator("time")
     def set_time(cls, time: Optional[datetime.datetime]):
         return time if time is not None else datetime.datetime.now()
+
+    def __add__(self, other: "HttpError"):
+        return HttpError(
+                http_code = max(self.http_code, other.http_code),
+                message = "\n".join((self.message, other.message)),
+                time = max(self.time, other.time) if any((t is not None for t in (self.time,other.time))) else None
+            )

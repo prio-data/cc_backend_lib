@@ -1,2 +1,2 @@
 
-from . import prediction, user, time_partition, country
+from . import prediction, user, time_partition, country, emailer

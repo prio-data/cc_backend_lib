@@ -40,7 +40,7 @@ class ModelApiClient(api_client.ApiClient, abc.ABC, Generic[T,U]):
 
         Get and deserialize a resource named name
         """
-        name = name.strip("/") + "/"
+        name = str(name).strip("/") + "/"
 
         path = self._path(name)
         parameters = {str(k): str(v) for k,v in kwargs.items()}
