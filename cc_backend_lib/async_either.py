@@ -23,6 +23,13 @@ class AsyncEither(Either):
             result = await function(self.value)
             return self.__class__(result, (None, True))
 
+    async def async_then(self, function: Callable[[Either[T,U]],Coroutine[Either[V,W], None, None]]) -> Coroutine[Either[V,W], None, None]:
+        result = await self.async_map(function)
+        try:
+            return result.join()
+        except (TypeError, AttributeError):
+            return result
+
     @classmethod
     def from_either(cls, regular_either: Either[T,U]) -> "AsyncEither[T,U]":
         return cls(regular_either.value, regular_either.monoid)

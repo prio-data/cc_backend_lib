@@ -119,3 +119,20 @@ class TestSummaries(unittest.TestCase):
         summary = asyncio.run(self.client.participant_summary(country_id = 1))
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 500)
+
+    def test_participants(self):
+        res = asyncio.run(self.client.participants())
+        self.assertTrue(res.is_right())
+        self.assertEqual({usr.id for usr in res.value.users},{1,2})
+
+    def test_participants_failure(self):
+
+        async def fail(id: int, *_, **__):
+            return Left(http_error.HttpError(http_code = 404, message = f"User {id} not found"))
+
+        self.users.detail = fail
+
+        summary = asyncio.run(self.client.participants(country_id = 1))
+        self.assertTrue(summary.is_left())
+        self.assertEqual(summary.monoid[0].http_code, 404)
+        self.assertEqual(len(summary.monoid[0].message.split("\n")), 2)
