@@ -13,7 +13,7 @@ from cc_backend_lib import models, async_either, helpers
 T = TypeVar("T")
 U = TypeVar("U")
 
-class Summaries():
+class Dal():
     """
     Summaries
     =========
@@ -40,7 +40,7 @@ class Summaries():
         self._cache = cache_class
         self._countries = countries
 
-    async def participants(self,
+    async def participant_summary(self,
             shift: int = 0,
             country_id: Optional[int] = None
             ) -> Either[http_error.HttpError, models.emailer.ParticipationSummary]:
@@ -66,7 +66,7 @@ class Summaries():
             .then(lambda kwargs: helpers.dictadd(kwargs, {"country":country_id}) if country_id is not None else kwargs)))
 
         predictions = await kwargs.async_map(curry(helpers.expand_kwargs, self._predictions.list))
-        predictions = predictions.to_either()
+        predictions = predictions.join()
 
         author_ids = async_either.AsyncEither.from_either(
                 predictions.then(lambda preds: {p.properties["author"] for p in preds.features}))
@@ -85,13 +85,8 @@ class Summaries():
                 .then(helpers.combine_http_errors)
                 .then(lambda ctries: [c.properties for c in ctries]))
 
-        if country_id:
-            country = await self._countries.detail(country_id)
-        else:
-            country = Right(None)
-
         return Either.apply(curry(lambda a, c, s: models.emailer.ParticipationSummary.from_user_list(
                 user_list = a,
                 partition = s,
-                countries = c 
+                countries = c
             ))).to_arguments(authors, countries, schedule)

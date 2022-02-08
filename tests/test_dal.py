@@ -4,7 +4,7 @@ import unittest
 import datetime
 from geojson_pydantic import geometries
 from pymonad.either import Left, Right
-from cc_backend_lib import summaries, models
+from cc_backend_lib import dal, models
 from cc_backend_lib.clients import predictions_client, scheduler_client, users_client, countries_client
 from cc_backend_lib.errors import http_error
 
@@ -70,7 +70,7 @@ class TestSummaries(unittest.TestCase):
         self.countries   = countries_client.CountriesClient("http://foo.bar.baz")
         self.countries.detail = country
 
-        self.client = summaries.Summaries(
+        self.client = dal.Dal(
                 predictions = self.predictions,
                 scheduler   = self.scheduler,
                 users       = self.users,
@@ -78,7 +78,7 @@ class TestSummaries(unittest.TestCase):
             )
 
     def test_summaries_no_errors(self):
-        summary = asyncio.run(self.client.participants(country_id = 1))
+        summary = asyncio.run(self.client.participant_summary(country_id = 1))
         self.assertTrue(summary.is_right())
         self.assertEqual(summary.value.number_of_users, 2)
 
@@ -87,7 +87,7 @@ class TestSummaries(unittest.TestCase):
             return Left(http_error.HttpError(http_code = 500, message = "Something went very wrong!!"))
 
         self.predictions.list = fail
-        summary = asyncio.run(self.client.participants(country_id = 1))
+        summary = asyncio.run(self.client.participant_summary(country_id = 1))
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 500)
         self.assertEqual(summary.monoid[0].message, "Something went very wrong!!")
@@ -97,7 +97,7 @@ class TestSummaries(unittest.TestCase):
             return Left(http_error.HttpError(http_code = 404, message = f"User {id} not found"))
         self.users.detail = fail
 
-        summary = asyncio.run(self.client.participants(country_id = 1))
+        summary = asyncio.run(self.client.participant_summary(country_id = 1))
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 404)
         self.assertEqual(len(summary.monoid[0].message.split("\n")), 2)
@@ -107,7 +107,7 @@ class TestSummaries(unittest.TestCase):
             return Left(http_error.HttpError(http_code = 404))
         self.countries.detail = fail
 
-        summary = asyncio.run(self.client.participants(country_id = 1))
+        summary = asyncio.run(self.client.participant_summary(country_id = 1))
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 404)
 
@@ -116,6 +116,6 @@ class TestSummaries(unittest.TestCase):
             return Left(http_error.HttpError(http_code = 500))
         self.scheduler.time_partition = fail
 
-        summary = asyncio.run(self.client.participants(country_id = 1))
+        summary = asyncio.run(self.client.participant_summary(country_id = 1))
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 500)
