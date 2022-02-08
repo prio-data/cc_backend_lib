@@ -1,6 +1,6 @@
 
 import asyncio
-from typing import Optional, TypeVar, Tuple
+from typing import Optional, TypeVar
 from toolz.functoolz import curry
 
 from pymonad.either import Either
