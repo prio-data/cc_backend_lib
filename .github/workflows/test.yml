@@ -1,0 +1,21 @@
+name: CC Backend Lib tests 
+on: 
+   push:
+      branches: [main]
+   pull_request:
+      branches: [main]
+jobs:
+   Run tests:
+      runs-on: ubuntu-latest
+      name: "Push to PyPi"
+      steps:
+         - uses: actions/checkout@v2
+         - uses: actions/setup-python@v2
+           with:
+              python-version: "3.8"
+         - name: "Dependencies"
+           run: |
+              pip install poetry
+              poetry install 
+         - name: "Run tests"
+           run: python -m unittest
