@@ -25,9 +25,11 @@ class Country(features.Feature):
                 )
 
 class CountryProperties(BaseModel):
-    gwno:  int
-    name:  str
-    iso2c: Optional[str] = None
+    gwno:        int
+    name:        str
+    iso2c:       Optional[str] = None
+    predictions: Optional[int] = None
+    participants:Optional[int] = None
 
 class CountryPropertiesList(BaseModel):
     countries: List[CountryProperties]

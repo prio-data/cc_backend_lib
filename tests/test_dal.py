@@ -1,4 +1,5 @@
 
+from typing import Optional
 import asyncio
 import unittest
 import datetime
@@ -29,14 +30,18 @@ class TestSummaries(unittest.TestCase):
     Various tests of the summaries class, both with success and failure conditions.
     """
     def setUp(self):
-        async def predictions(*_,**__):
-            return Right(models.prediction.PredFeatureCollection(
-                        features = [
-                            pred_feature(1,10),
-                            pred_feature(1,10),
-                            pred_feature(2,10),
-                            pred_feature(2,10),
-                            ]))
+        async def predictions(country: Optional[int] = None, *_,**__):
+            features = [
+                pred_feature(1,10),
+                pred_feature(1,10),
+                pred_feature(2,10),
+                pred_feature(2,12),
+                ]
+
+            if country is not None:
+                features = [f for f in features if f.properties["country"] == country]
+
+            return Right(models.prediction.PredFeatureCollection(features = features))
 
         self.predictions = predictions_client.PredictionsClient("http://foo.bar.baz")
         self.predictions.list = predictions
@@ -78,9 +83,17 @@ class TestSummaries(unittest.TestCase):
             )
 
     def test_summaries_no_errors(self):
-        summary = asyncio.run(self.client.participant_summary(country_id = 1))
+        summary = asyncio.run(self.client.participant_summary(country_id = 10))
         self.assertTrue(summary.is_right())
         self.assertEqual(summary.value.number_of_users, 2)
+
+        summary = asyncio.run(self.client.participant_summary(country_id = 12))
+        self.assertTrue(summary.is_right())
+        self.assertEqual(summary.value.number_of_users, 1)
+
+        summary = asyncio.run(self.client.participant_summary(country_id = 20))
+        self.assertTrue(summary.is_right())
+        self.assertEqual(summary.value.number_of_users, 0)
 
     def test_summaries_remote_500(self):
         async def fail(*_,**__):
@@ -92,22 +105,12 @@ class TestSummaries(unittest.TestCase):
         self.assertEqual(summary.monoid[0].http_code, 500)
         self.assertEqual(summary.monoid[0].message, "Something went very wrong!!")
 
-    def test_combine_user_errors(self):
-        async def fail(id: int, *_, **__):
-            return Left(http_error.HttpError(http_code = 404, message = f"User {id} not found"))
-        self.users.detail = fail
-
-        summary = asyncio.run(self.client.participant_summary(country_id = 1))
-        self.assertTrue(summary.is_left())
-        self.assertEqual(summary.monoid[0].http_code, 404)
-        self.assertEqual(len(summary.monoid[0].message.split("\n")), 2)
-
     def test_countries_error(self):
         async def fail(*_, **__):
             return Left(http_error.HttpError(http_code = 404))
         self.countries.detail = fail
 
-        summary = asyncio.run(self.client.participant_summary(country_id = 1))
+        summary = asyncio.run(self.client.participant_summary(country_id = 10))
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 404)
 
@@ -132,7 +135,13 @@ class TestSummaries(unittest.TestCase):
 
         self.users.detail = fail
 
-        summary = asyncio.run(self.client.participants(country_id = 1))
+        summary = asyncio.run(self.client.participants(country_id = 10))
         self.assertTrue(summary.is_left())
         self.assertEqual(summary.monoid[0].http_code, 404)
         self.assertEqual(len(summary.monoid[0].message.split("\n")), 2)
+
+    def test_country_pred_summary(self):
+        summary = asyncio.run(self.client.participant_summary()).value
+        self.assertEqual({c.participants for c in summary.countries}, {2,1})
+        self.assertEqual(summary.number_of_users, 2)
+        print(summary)

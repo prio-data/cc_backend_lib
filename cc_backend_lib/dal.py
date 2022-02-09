@@ -1,7 +1,8 @@
 
 import asyncio
+from operator import add
 from typing import Optional, TypeVar
-from toolz.functoolz import curry
+from toolz.functoolz import curry, reduce
 
 from pymonad.either import Either
 
@@ -115,14 +116,19 @@ class Dal():
         predictions = await schedule.async_then(curry(self._predictions_in_partition, country_id))
         predictions = async_either.AsyncEither.from_either(predictions)
 
-        authors = await predictions.async_then(self._prediction_authors)
+        #authors = await predictions.async_then(self._prediction_authors)
         countries = await predictions.async_then(self._prediction_countries)
 
-        return Either.apply(curry(lambda a, c, s: models.emailer.ParticipationSummary.from_user_list(
-                user_list = a,
+        participants = (predictions
+            .then(curry(map, lambda p: p.properties["author"]))
+            .then(set)
+            .then(len))
+
+        return Either.apply(curry(lambda p, c, s: models.emailer.ParticipationSummary(
+                number_of_users = p,
                 partition = s,
                 countries = c
-            ))).to_arguments(authors, countries, schedule)
+            ))).to_arguments(participants, countries, schedule)
 
     async def _prediction_authors(self, predictions: models.prediction.PredFeatureCollection) -> Either[http_error.HttpError, models.user.UserList]:
         requests = [self._users.detail(id) for id in {p.properties["author"] for p in predictions}]
@@ -132,10 +138,20 @@ class Dal():
         return authors
 
     async def _prediction_countries(self, predictions: models.prediction.PredFeatureCollection):
+        def add_pred_metadata(
+                predictions: models.prediction.PredFeatureCollection,
+                country_props: models.country.CountryProperties
+                ) -> models.country.CountryProperties:
+            country_predictions = [p for p in predictions if p.properties["country"] == country_props.gwno]
+            country_props.predictions = len(country_predictions)
+            country_props.participants = len({p.properties["author"] for p in country_predictions})
+            return country_props
+
         requests = [self._countries.detail(id) for id in {p.properties["country"] for p in predictions.features}]
         countries = await asyncio.gather(*requests)
         countries = helpers.combine_http_errors(countries)
-        return countries.then(lambda ctries: [c.properties for c in ctries])
+        country_properties = countries.then(lambda ctries: [c.properties for c in ctries])
+        return country_properties.then(curry(map,curry(add_pred_metadata, predictions))).then(list)
 
     async def _predictions_in_partition(self,
             country_id: Optional[int],

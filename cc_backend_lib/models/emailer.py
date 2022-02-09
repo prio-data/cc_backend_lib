@@ -6,7 +6,7 @@ Data models related to the cc_emailer service.
 
 from typing import Optional, List
 from pydantic import BaseModel
-from . import time_partition, user, country
+from . import time_partition, user, country, prediction
 
 class ParticipationSummary(BaseModel):
     """
