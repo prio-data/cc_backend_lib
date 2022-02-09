@@ -1,6 +1,8 @@
 
 # CC Backend Client
 
+![tests status](https://github.com/prio-data/cc_backend_lib/actions/workflows/test.yml/badge.svg)
+
 This library contains several classes and data models that are useful when
 writing services that interact with other services in Conflict Cartographer. In
 particular, the modules `api_client` and `schema` respectively provide classes
