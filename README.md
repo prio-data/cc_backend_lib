@@ -1,5 +1,5 @@
 
-# CC Backend Client
+# CC Backend Library 
 
 ![tests status](https://github.com/prio-data/cc_backend_lib/actions/workflows/test.yml/badge.svg)
 
