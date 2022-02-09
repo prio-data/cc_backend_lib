@@ -39,3 +39,17 @@ class ParticipationSummary(BaseModel):
             number_of_users = len(user_list.users),
             partition       = partition,
             countries       = countries)
+
+class EmailSpecification(BaseModel):
+    """
+    EmailSpecification
+    ==================
+
+    Posted by an admin user as a request to send emails to users that
+    participated in the specified time / country combination.
+    """
+
+    shift: int
+    countries: List[int]
+    content: Optional[str] = None
+    template: Optional[int] = None
