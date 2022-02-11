@@ -1,3 +1,5 @@
+import logging
+import pickle
 from typing import List, Dict, Any, Optional
 
 def make_signature(args: Optional[List[Any]] = None, kwargs: Optional[Dict[str, Any]] = None):
@@ -13,4 +15,4 @@ def make_signature(args: Optional[List[Any]] = None, kwargs: Optional[Dict[str, 
         sig += tuple(args)
     if kwargs:
         sig += tuple(kwargs.items())
-    return hash(sig)
+    return hash(pickle.dumps(sig))
