@@ -17,10 +17,9 @@ class TestCache(unittest.TestCase):
                 )
 
     def test_dict_cache(self):
-        dc = dict_cache.DictCache()
         called = {"n": 0}
 
-        @cache.cache(dc)
+        @cache.cache(dict_cache.DictCache)
         def my_function(a,b):
             called["n"] += 1
             return a+b
@@ -36,9 +35,7 @@ class TestCache(unittest.TestCase):
     def test_conditional(self):
         called = {"n": 0}
 
-        dc = dict_cache.DictCache()
-
-        @cache.cache(dc, lambda a,b: a == 1)
+        @cache.cache(dict_cache.DictCache, lambda a,b: a == 1)
         def my_function(a,b):
             called["n"] += 1
             return a+b
@@ -53,8 +50,7 @@ class TestCache(unittest.TestCase):
 
     def test_async_cache(self):
         called = {"n": 0}
-        dc = dict_cache.DictCache()
-        @cache.cache(dc)
+        @cache.cache(dict_cache.DictCache)
         async def my_function(a,b):
             called["n"] += 1
             return a+b

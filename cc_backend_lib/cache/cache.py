@@ -44,7 +44,8 @@ def _wrapper(cache_class, conditional, fn):
 
 def cache(
         cache_class: base_cache.BaseCache[T],
-        conditional: Callable[[List[Any], Dict[str, Any]], bool] = _always_true):
+        conditional: Callable[[List[Any], Dict[str, Any]], bool] = _always_true,
+        *cache_args, **cache_kwargs):
     """
     cache
     =====
@@ -61,4 +62,5 @@ def cache(
     **kwargs of the called function. This function determines whether or not to
     cache, or to always recompute, based on whether it returns True or False.
     """
-    return curry(_wrapper, cache_class, conditional)
+    cache_instance = cache_class(*cache_args, **cache_kwargs)
+    return curry(_wrapper, cache_instance, conditional)
