@@ -40,7 +40,7 @@ from cc_backend_lib.cache import redis_cache, cache
 
 cache_backend = redis_cache
 
-@cache.cache(redis_cache.RedisBackend(host = "...", expiry_time = 100))
+@cache.cache(redis_cache.RedisBackend(name = "my-slow-function", host = "...", expiry_time = 100))
 def my_slow_function(a,b,c):
    ...
 
