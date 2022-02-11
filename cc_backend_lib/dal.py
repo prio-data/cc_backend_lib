@@ -1,8 +1,8 @@
 
 import json
-import pydantic
 import asyncio
 from typing import Optional, TypeVar
+import pydantic
 from toolz.functoolz import curry, do
 
 from pymonad.either import Either, Right

@@ -25,7 +25,9 @@ cc_dal = dal.Dal(
    )
 ```
 
-The class has several methods that offer access to data and summaries. See `help(Dal)`
+The class has several methods that offer access to data and summaries. See
+`help(Dal)`.  The `.participation_summary` method caches results for past
+(shift < 0) time-periods for efficiency.
 
 ## Caching
 
