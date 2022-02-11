@@ -26,3 +26,29 @@ cc_dal = dal.Dal(
 ```
 
 The class has several methods that offer access to data and summaries. See `help(Dal)`
+
+## Caching
+
+A powerful caching decorator is provided that lets you decorate both sync and
+async functions for caching. For using different kinds of backends or for other
+kinds of customization (LRU, etc.), the caching decorator lets you pass a
+custom cache class. There are some provided cache classes, including one that
+uses Redis: 
+
+```
+from cc_backend_lib.cache import redis_cache, cache
+
+cache_backend = redis_cache
+
+@cache.cache(redis_cache.RedisBackend(host = "...", expiry_time = 100))
+def my_slow_function(a,b,c):
+   ...
+
+# First time slow
+a = my_slow_function(1,2,3)
+
+# Second time fast
+b = my_slow_function(1,2,3)
+
+assert a == b
+```

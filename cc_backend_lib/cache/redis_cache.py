@@ -4,7 +4,12 @@ import redis
 from . import base_cache
 
 class RedisCache(base_cache.BaseCache[str]):
-    def __init__(self, host: str, port: int, db: int, expiry_time: Optional[int] = 10):
+    def __init__(self,
+            host: str,
+            expiry_time: Optional[int] = 10,
+            port: int = 6379,
+            db: int = 0):
+
         self._redis = redis.Redis(host = host, port = port, db = db)
         self._expiry_time = expiry_time
 
