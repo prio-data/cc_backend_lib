@@ -144,4 +144,3 @@ class TestSummaries(unittest.TestCase):
         summary = asyncio.run(self.client.participant_summary()).value
         self.assertEqual({c.participants for c in summary.countries}, {2,1})
         self.assertEqual(summary.number_of_users, 2)
-        print(summary)

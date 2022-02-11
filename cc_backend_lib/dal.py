@@ -7,7 +7,7 @@ from toolz.functoolz import curry, reduce
 from pymonad.either import Either
 
 from cc_backend_lib.clients import predictions_client, scheduler_client, users_client, countries_client
-from cc_backend_lib.cache import dummy_cache, cache
+from cc_backend_lib.cache import dict_cache, base_cache
 from cc_backend_lib.errors import http_error
 from cc_backend_lib import models, async_either, helpers
 
@@ -33,7 +33,7 @@ class Dal():
             scheduler: scheduler_client.SchedulerClient,
             users: users_client.UsersClient,
             countries: countries_client.CountriesClient,
-            cache_class: cache.Cache = dummy_cache.DummyCache()):
+            cache_class: base_cache.BaseCache = dict_cache.DictCache()):
 
         self._predictions = predictions
         self._scheduler = scheduler

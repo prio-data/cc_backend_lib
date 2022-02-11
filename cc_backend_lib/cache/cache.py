@@ -1,51 +1,63 @@
 
-import abc
-import hashlib
-from typing import Generic, Any, List, Dict, TypeVar
-from pymonad.maybe import Maybe
+import inspect
+import functools
+from typing import TypeVar, Callable, Any, List, Dict
+from toolz.functoolz import curry, compose
+from . import base_cache, signature
 
 T = TypeVar("T")
 
-class Cache(abc.ABC, Generic[T]):
-    _fn = None
+def _always_true(*_, **__):
+    return True
 
-    @abc.abstractmethod
-    def _get(self, key: str) -> Maybe[T]:
-        pass
+def _sync_wrapper(cache_class, conditional, fn: Callable[[Any], T]):
+    @functools.wraps(fn)
+    def inner(*args, **kwargs):
+        if conditional(*args, **kwargs):
+            sig = signature.make_signature(args, kwargs)
+            fn_then_cache = compose(curry(cache_class.set, sig), fn)
+            proc = cache_class.get(sig).maybe(lambda: fn_then_cache(*args, **kwargs), lambda x: lambda: x)
+            return proc()
+        else:
+            return fn(*args, **kwargs)
+    return inner
 
-    @abc.abstractmethod
-    def _set(self, key: str, value: T):
-        pass
+def _async_wrapper(cache_class, conditional, fn: Callable[[Any], T]):
+    @functools.wraps(fn)
+    async def inner(*args, **kwargs):
+        if conditional(*args, **kwargs):
+            sig = signature.make_signature(args, kwargs)
+            if (cached := cache_class.get(sig)).is_just():
+                return cached.value
+            else:
+                value = await fn(*args, **kwargs)
+                cache_class.set(sig, value)
+                return value
+        else:
+            return await fn(*args, **kwargs)
+    return inner
 
-    def decorate(self, fn):
-        if self._fn is not None:
-            raise ValueError((
-                    "Tried to decorate twice with the same cache. "
-                    "Each instance can only decorate one function!"))
-        self._fn = fn
+def _wrapper(cache_class, conditional, fn):
+    wrapper_fn = _sync_wrapper if not inspect.iscoroutinefunction(fn) else _async_wrapper
+    return wrapper_fn(cache_class, conditional, fn)
 
-    def _args_to_identifier(self, args: List[Any], kwargs: Dict[str, Any]) -> str:
-        kwargs = list(kwargs.items())
-        return hashlib.sha256(
-                (str(hash(args)) + str(hash(kwargs))).encode()).hexdigest()
+def cache(
+        cache_class: base_cache.BaseCache[T],
+        conditional: Callable[[List[Any], Dict[str, Any]], bool] = _always_true):
+    """
+    cache
+    =====
 
-    def __call__(self, *args, **kwargs):
-        if self._fn is None:
-            raise AttributeError("Not assigned to a function. Have you called 'decorate'?")
+    parameters:
+        cache_class (base_cache.BaseCache)
+        conditional (Callable[[List[Any], Dict[str, Any]])
 
-        key = self._args_to_identifier(args, kwargs)
-        value = self._get(key)
+    Decorator that caches function results using the provided class. The class
+    must be a subclass of base_cache, providing get and set methods with
+    appropriate signatures.
 
-        if value.is_nothing():
-            value = self._fn(*args, **kwargs)
-            self._set(key, value)
-
-        return value
-
-    @classmethod
-    def cache(cls, *args, **kwargs):
-        instance = cls(*args, **kwargs)
-        def wrapper(fn):
-            instance.decorate(fn)
-            return instance
-        return wrapper
+    An optional conditional can be passed, which receives the *args and
+    **kwargs of the called function. This function determines whether or not to
+    cache, or to always recompute, based on whether it returns True or False.
+    """
+    return curry(_wrapper, cache_class, conditional)

@@ -1,16 +1,15 @@
 
-from typing import Any
-import pickle
+from typing import Optional
 import redis
-from . import cache
+from . import base_cache
 
-class RedisCache(cache.Cache[Any]):
-    def __init__(self, redis_client: redis.Redis, expiration_time: int):
-        self._client = redis_client
-        self._ex = expiration_time
+class RedisCache(base_cache.BaseCache[str]):
+    def __init__(self, host: str, port: int, db: int, expiry_time: Optional[int] = 10):
+        self._redis = redis.Redis(host = host, port = port, db = db)
+        self._expiry_time = expiry_time
 
-    def _get(self, key: str) -> Any:
-        return pickle.loads(self._client.get(key))
+    def get(self, key: str) -> str:
+        return self._redis.get(key).decode()
 
-    def _set(self, key: str, value: Any):
-        self._client.set(key, pickle.dumps(value), ex = self._ex)
+    def set(self, key: str, val: str) ->  None:
+        self._redis.set(key, val, ex = self._expiry_time)
