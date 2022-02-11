@@ -5,15 +5,15 @@ from . import base_cache
 
 class RedisCache(base_cache.BaseCache[str]):
     def __init__(self,
-            name: str,
             host: str,
             expiry_time: Optional[int] = 10,
             port: int = 6379,
             db: int = 0):
 
+        super().__init__()
+
         self._redis = redis.Redis(host = host, port = port, db = db)
         self._expiry_time = expiry_time
-        self._name = name
 
     def get(self, key: str) -> str:
         return self._redis.get(self._key(key)).decode()

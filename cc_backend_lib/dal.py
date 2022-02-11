@@ -9,6 +9,7 @@ from pymonad.either import Either
 from cc_backend_lib.clients import predictions_client, scheduler_client, users_client, countries_client
 from cc_backend_lib.cache import dict_cache, base_cache
 from cc_backend_lib.errors import http_error
+from cc_backend_lib.cache import cache
 from cc_backend_lib import models, async_either, helpers
 
 T = TypeVar("T")

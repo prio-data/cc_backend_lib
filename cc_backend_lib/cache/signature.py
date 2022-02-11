@@ -13,4 +13,4 @@ def make_signature(args: Optional[List[Any]] = None, kwargs: Optional[Dict[str, 
         sig += tuple(args)
     if kwargs:
         sig += tuple(kwargs.items())
-    return sig
+    return hash(sig)

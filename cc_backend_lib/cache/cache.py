@@ -39,6 +39,7 @@ def _async_wrapper(cache_class, conditional, fn: Callable[[Any], T]):
 
 def _wrapper(cache_class, conditional, fn):
     wrapper_fn = _sync_wrapper if not inspect.iscoroutinefunction(fn) else _async_wrapper
+    cache_class.set_name(fn.__name__)
     return wrapper_fn(cache_class, conditional, fn)
 
 def cache(
