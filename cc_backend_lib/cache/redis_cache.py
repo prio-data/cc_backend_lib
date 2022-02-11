@@ -1,5 +1,6 @@
 
 from typing import Optional
+from pymonad.maybe import Just, Nothing, Maybe
 import redis
 from . import base_cache
 
@@ -15,8 +16,12 @@ class RedisCache(base_cache.BaseCache[str]):
         self._redis = redis.Redis(host = host, port = port, db = db)
         self._expiry_time = expiry_time
 
-    def get(self, key: str) -> str:
-        return self._redis.get(self._key(key)).decode()
+    def get(self, key: str) -> Maybe[str]:
+        value = self._redis.get(self._key(key))
+        if value is None:
+            return Nothing
+        else:
+            return Just(value.decode())
 
     def set(self, key: str, val: str) ->  None:
         self._redis.set(self._key(key), val, ex = self._expiry_time)

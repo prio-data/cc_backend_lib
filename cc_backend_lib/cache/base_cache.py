@@ -13,7 +13,7 @@ class BaseCache(ABC, Generic[T]):
     Base class for caches.
     """
     def __init__(self):
-        self._name = None
+        self._name = "" 
 
     @abstractmethod
     def get(self, key: int) -> Maybe[T]:
@@ -24,7 +24,7 @@ class BaseCache(ABC, Generic[T]):
         pass
 
     def _key(self, key:int):
-        return self._name + "/" + str(key) if self._name is not None else str(key)
+        return self._name + "/" + str(key) if self._name else str(key)
 
     def set_name(self, name: str):
         self._name = name

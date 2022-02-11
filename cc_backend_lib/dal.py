@@ -1,15 +1,16 @@
 
+import json
+import pydantic
 import asyncio
-from operator import add
 from typing import Optional, TypeVar
-from toolz.functoolz import curry, reduce
+from toolz.functoolz import curry, do
 
-from pymonad.either import Either
+from pymonad.either import Either, Right
+from pymonad.maybe import Just, Nothing, Maybe
 
 from cc_backend_lib.clients import predictions_client, scheduler_client, users_client, countries_client
-from cc_backend_lib.cache import dict_cache, base_cache
+from cc_backend_lib.cache import dict_cache, base_cache, signature
 from cc_backend_lib.errors import http_error
-from cc_backend_lib.cache import cache
 from cc_backend_lib import models, async_either, helpers
 
 T = TypeVar("T")
@@ -34,13 +35,14 @@ class Dal():
             scheduler: scheduler_client.SchedulerClient,
             users: users_client.UsersClient,
             countries: countries_client.CountriesClient,
-            cache_class: base_cache.BaseCache = dict_cache.DictCache()):
+            cache_class: Optional[base_cache.BaseCache] = None):
 
         self._predictions = predictions
         self._scheduler = scheduler
         self._users = users
-        self._cache = cache_class
         self._countries = countries
+
+        self._cache = cache_class if cache_class is not None else dict_cache.DictCache()
 
     async def predictions(self, shift: int, country_id: int) -> Either[http_error.HttpError, models.prediction.PredFeatureCollection]:
         """
@@ -110,6 +112,13 @@ class Dal():
         Returns a summary of participation for a time (shift) and country
         (country_id, optional).
         """
+        sig = "participant_summary/"+str(signature.make_signature([], {"shift":shift, "country_id": country_id}))
+        using_cache = shift < 0
+
+        if using_cache:
+            existing = self._get_cached_model(models.emailer.ParticipationSummary, sig)
+            if existing.is_just():
+                return Right(existing.value)
 
         schedule = await self.time_partition(shift)
         schedule = async_either.AsyncEither.from_either(schedule)
@@ -125,11 +134,13 @@ class Dal():
             .then(set)
             .then(len))
 
-        return Either.apply(curry(lambda p, c, s: models.emailer.ParticipationSummary(
+        cache_fn = self._cache_model if using_cache else lambda *_, **__: None
+        return (Either.apply(curry(lambda p, c, s: models.emailer.ParticipationSummary(
                 number_of_users = p,
                 partition = s,
                 countries = c
             ))).to_arguments(participants, countries, schedule)
+            .then(curry(do,curry(cache_fn, sig))))
 
     async def _prediction_authors(self, predictions: models.prediction.PredFeatureCollection) -> Either[http_error.HttpError, models.user.UserList]:
         requests = [self._users.detail(id) for id in {p.properties["author"] for p in predictions}]
@@ -164,3 +175,21 @@ class Dal():
 
         predictions = await self._predictions.list(**kwargs)
         return predictions
+
+    def _cache_model(self, key: str, model: pydantic.BaseModel):
+        self._cache.set(key, self._serialize_cached_model(model))
+
+    def _get_cached_model(self, as_model: T, key: str) -> Maybe[T]:
+        return (self._cache.get(key)
+            .then(curry(self._deserialize_cached_model, as_model)))
+
+    @staticmethod
+    def _serialize_cached_model(model: pydantic.BaseModel) -> str:
+        return model.json()
+
+    @staticmethod
+    def _deserialize_cached_model(as_model: T, data: str) -> Maybe[T]:
+        try:
+            return Just(as_model(**json.loads(data)))
+        except (json.JSONDecodeError, pydantic.ValidationError):
+            return Nothing

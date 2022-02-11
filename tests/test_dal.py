@@ -1,4 +1,5 @@
 
+from toolz.functoolz import do, compose, curry
 from typing import Optional
 import asyncio
 import unittest
@@ -117,6 +118,7 @@ class TestSummaries(unittest.TestCase):
     def test_scheduler_error(self):
         async def fail(*_, **__):
             return Left(http_error.HttpError(http_code = 500))
+
         self.scheduler.time_partition = fail
 
         summary = asyncio.run(self.client.participant_summary(country_id = 1))
@@ -144,3 +146,15 @@ class TestSummaries(unittest.TestCase):
         summary = asyncio.run(self.client.participant_summary()).value
         self.assertEqual({c.participants for c in summary.countries}, {2,1})
         self.assertEqual(summary.number_of_users, 2)
+
+    def test_caching(self):
+        asyncio.run(self.client.participant_summary(shift = -1, country_id = 0))
+        asyncio.run(self.client.participant_summary(shift = -1, country_id = 1))
+        self.assertEqual(len(self.client._cache._dict), 2)
+
+        asyncio.run(self.client.participant_summary(shift = -1, country_id = 0))
+        self.assertEqual(len(self.client._cache._dict), 2)
+
+        asyncio.run(self.client.participant_summary(shift=0))
+        self.assertEqual(len(self.client._cache._dict), 2)
+
