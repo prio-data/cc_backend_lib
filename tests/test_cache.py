@@ -1,7 +1,7 @@
 
 import asyncio
 import unittest
-from cc_backend_lib.cache import cache, dict_cache, signature
+from cc_backend_lib.cache import cache, dict_cache, signature, identity_serializer
 
 class TestCache(unittest.TestCase):
     def test_sig(self):
@@ -19,7 +19,7 @@ class TestCache(unittest.TestCase):
     def test_dict_cache(self):
         called = {"n": 0}
 
-        @cache.cache(dict_cache.DictCache)
+        @cache.cache(dict_cache.DictCache, identity_serializer.IdentitySerializer)
         def my_function(a,b):
             called["n"] += 1
             return a+b
@@ -35,7 +35,7 @@ class TestCache(unittest.TestCase):
     def test_conditional(self):
         called = {"n": 0}
 
-        @cache.cache(dict_cache.DictCache, lambda a,b: a == 1)
+        @cache.cache(dict_cache.DictCache, identity_serializer.IdentitySerializer, lambda a,b: a == 1)
         def my_function(a,b):
             called["n"] += 1
             return a+b
@@ -50,7 +50,7 @@ class TestCache(unittest.TestCase):
 
     def test_async_cache(self):
         called = {"n": 0}
-        @cache.cache(dict_cache.DictCache)
+        @cache.cache(dict_cache.DictCache, identity_serializer.IdentitySerializer)
         async def my_function(a,b):
             called["n"] += 1
             return a+b

@@ -146,15 +146,3 @@ class TestSummaries(unittest.TestCase):
         summary = asyncio.run(self.client.participant_summary()).value
         self.assertEqual({c.participants for c in summary.countries}, {2,1})
         self.assertEqual(summary.number_of_users, 2)
-
-    def test_caching(self):
-        asyncio.run(self.client.participant_summary(shift = -1, country_id = 0))
-        asyncio.run(self.client.participant_summary(shift = -1, country_id = 1))
-        self.assertEqual(len(self.client._cache._dict), 2)
-
-        asyncio.run(self.client.participant_summary(shift = -1, country_id = 0))
-        self.assertEqual(len(self.client._cache._dict), 2)
-
-        asyncio.run(self.client.participant_summary(shift=0))
-        self.assertEqual(len(self.client._cache._dict), 2)
-
