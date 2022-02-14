@@ -26,7 +26,6 @@ class Dal():
         scheduler   (cc_backend_lib.clients.scheduler_client.SchedulerClient)
         users       (cc_backend_lib.clients.users_client.UsersClient)
         countries   (cc_backend_lib.clients.countries_client.CountriesClient)
-        cache_class (cc_backend_lib.cache.Cache)
 
     A class that can be used to fetch various useful summaries.
     """
@@ -34,15 +33,13 @@ class Dal():
             predictions: predictions_client.PredictionsClient,
             scheduler: scheduler_client.SchedulerClient,
             users: users_client.UsersClient,
-            countries: countries_client.CountriesClient,
-            cache_class: Optional[base_cache.BaseCache] = None):
+            countries: countries_client.CountriesClient):
 
         self._predictions = predictions
         self._scheduler = scheduler
         self._users = users
         self._countries = countries
 
-        self._cache = cache_class if cache_class is not None else dict_cache.DictCache()
 
     async def predictions(self, shift: int, country_id: int) -> Either[http_error.HttpError, models.prediction.PredFeatureCollection]:
         """
@@ -112,14 +109,6 @@ class Dal():
         Returns a summary of participation for a time (shift) and country
         (country_id, optional).
         """
-        sig = "participant_summary/"+str(signature.make_signature([], {"shift":shift, "country_id": country_id}))
-        using_cache = shift < 0
-
-        if using_cache:
-            existing = self._get_cached_model(models.emailer.ParticipationSummary, sig)
-            if existing.is_just():
-                return Right(existing.value)
-
         schedule = await self.time_partition(shift)
         schedule = async_either.AsyncEither.from_either(schedule)
 
@@ -134,13 +123,11 @@ class Dal():
             .then(set)
             .then(len))
 
-        cache_fn = self._cache_model if using_cache else lambda *_, **__: None
         return (Either.apply(curry(lambda p, c, s: models.emailer.ParticipationSummary(
                 number_of_users = p,
                 partition = s,
                 countries = c
-            ))).to_arguments(participants, countries, schedule)
-            .then(curry(do,curry(cache_fn, sig))))
+            ))).to_arguments(participants, countries, schedule))
 
     async def _prediction_authors(self, predictions: models.prediction.PredFeatureCollection) -> Either[http_error.HttpError, models.user.UserList]:
         requests = [self._users.detail(id) for id in {p.properties["author"] for p in predictions}]
@@ -175,13 +162,6 @@ class Dal():
 
         predictions = await self._predictions.list(**kwargs)
         return predictions
-
-    def _cache_model(self, key: str, model: pydantic.BaseModel):
-        self._cache.set(key, self._serialize_cached_model(model))
-
-    def _get_cached_model(self, as_model: T, key: str) -> Maybe[T]:
-        return (self._cache.get(key)
-            .then(curry(self._deserialize_cached_model, as_model)))
 
     @staticmethod
     def _serialize_cached_model(model: pydantic.BaseModel) -> str:
