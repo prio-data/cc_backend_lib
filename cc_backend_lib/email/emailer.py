@@ -6,5 +6,5 @@ class Emailer(abc.ABC):
         self._from_name    = from_name
 
     @abc.abstractmethod
-    def send(self, subject,  to_email: str, message: str, to_name: str = "user") -> None:
+    def send(self, subject,  to_email: str, text_content: str, html_content: str, to_name: str = "user") -> None:
         pass

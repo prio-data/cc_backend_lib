@@ -5,16 +5,14 @@ import pydantic
 class Contact(pydantic.BaseModel):
     Email: pydantic.EmailStr
     Name:  str
+    Variables:        Optional[Dict[str,str]] = None
 
 class Message(pydantic.BaseModel):
     From:             Contact
     To:               List[Contact]
     Subject:          str
-    TextPart:         Optional[str]           = None
-    HTMLPart:         Optional[str]           = None
-    TemplateID:       Optional[int]           = None
-    Variables:        Optional[Dict[str,str]] = None
-    TemplateLanguage: bool                    = False
+    TextPart:         str
+    HTMLPart:         str
 
 
 class SendData(pydantic.BaseModel):
