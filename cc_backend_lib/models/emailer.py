@@ -1,5 +1,6 @@
 """
 emailer
+=======
 
 Data models related to the cc_emailer service.
 """
@@ -40,7 +41,7 @@ class ParticipationSummary(BaseModel):
             partition       = partition,
             countries       = countries)
 
-class EmailSpecification(BaseModel):
+class ParticipationEmailSpecification(BaseModel):
     """
     EmailSpecification
     ==================
@@ -49,7 +50,21 @@ class EmailSpecification(BaseModel):
     participated in the specified time / country combination.
     """
 
-    shift: int
+    shift:     int
     countries: List[int]
-    content: Optional[str] = None
-    template: Optional[int] = None
+    content:   str
+    template:  int
+
+class SingleEmailSpecification(BaseModel):
+    """
+    SingleEmailSpecification
+    ========================
+
+    Posted by an admin user as a request to send a single email to a specific email.
+    """
+
+    email:    str
+    content:  str
+    template: int
+
+EmailSpecification = ParticipationEmailSpecification
