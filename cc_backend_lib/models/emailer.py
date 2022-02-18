@@ -5,9 +5,9 @@ emailer
 Data models related to the cc_emailer service.
 """
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 from pydantic import BaseModel
-from . import time_partition, user, country, prediction
+from . import time_partition, user, country
 
 class ParticipationSummary(BaseModel):
     """
@@ -54,6 +54,7 @@ class ParticipationEmailSpecification(BaseModel):
     countries: List[int]
     content:   str
     template:  int
+    links:     Optional[Dict[str, str]]
 
 class SingleEmailSpecification(BaseModel):
     """
