@@ -21,17 +21,23 @@ class Country(features.Feature):
                         gwno = gwno,
                         name = name,
                         iso2c = iso2c
-                    )
+                    ),
+                id = gwno
                 )
 
-class CountryProperties(BaseModel):
-    gwno:        int
-    name:        str
+class CountryIdentity(BaseModel):
+    gwno: int
+    name: str
+
+class CountryProperties(CountryIdentity):
     iso2c:       Optional[str] = None
     predictions: Optional[int] = None
     participants:Optional[int] = None
 
 class CountryPropertiesList(BaseModel):
     countries: List[CountryProperties]
+
+class CountryList(BaseModel):
+    countries: List[CountryIdentity]
 
 Country.update_forward_refs()

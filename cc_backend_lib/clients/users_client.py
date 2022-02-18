@@ -5,7 +5,7 @@ from cc_backend_lib.errors import http_error
 from cc_backend_lib import models
 from . import model_api_client
 
-class UsersClient(model_api_client.ModelApiClient[models.user.User, models.user.UserList]):
+class UsersClient(model_api_client.ModelApiClient[models.user.UserDetail, models.user.UserList]):
     """
     UsersClient
     ===========
@@ -22,9 +22,9 @@ class UsersClient(model_api_client.ModelApiClient[models.user.User, models.user.
         super().__init__(base_url, path)
         self._anonymize = anonymize
 
-    def deserialize_detail(self, data:bytes)-> Either[http_error.HttpError, models.user.User]:
+    def deserialize_detail(self, data:bytes)-> Either[http_error.HttpError, models.user.UserDetail]:
         try:
-            data = models.user.User(**json.loads(data))
+            data = models.user.UserDetail(**json.loads(data))
             if self._anonymize:
                 data.scrub()
             return Right(data)
@@ -33,9 +33,19 @@ class UsersClient(model_api_client.ModelApiClient[models.user.User, models.user.
 
     def deserialize_list(self, data:bytes)-> Either[http_error.HttpError, models.user.UserList]:
         try:
-            data = models.user.UserList(users = json.loads(data))
+            data = models.user.UserList(**json.loads(data))
             if self._anonymize:
                 data.scrub()
             return Right(data)
         except Exception as e:
             return Left(http_error.HttpError(message = str(e), http_code = 500))
+
+    async def set_email_subscription_status(self, name: str, status: bool) -> Either[http_error.HttpError, models.user.UserEmailStatus]:
+        parameters = self._parameters({})
+        result = await self._request("put",
+                self._path(name) + "/email-subscription",
+                parameters = parameters,
+                json = models.user.EmailStatus(has_unsubscribed = status).dict())
+        return result.then(lambda data: models.user.UserEmailStatus(**json.loads(data)))
+
+

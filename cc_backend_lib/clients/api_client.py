@@ -25,9 +25,18 @@ class ApiClient(abc.ABC):
         base.update(parameters if parameters is not None else {})
         return base
 
-    async def _get(self, path: str, parameters: Dict[str,str]) -> Either[http_error.HttpError, bytes]:
+    async def _get(self, path: str, parameters: Dict[str,str]):
+        return await self._request("get", path, parameters)
+
+    async def _request(self,
+            method: str,
+            path: str,
+            parameters: Dict[str,str],
+            *args,
+            **kwargs
+            ) -> Either[http_error.HttpError, bytes]:
         async with self._session() as session:
-            async with session.get(path, params = parameters) as response:
+            async with session.request(method, path, *args, params = parameters, **kwargs) as response:
                 logger.debug(f"Requested {response.url} ({response.status})")
                 content = await response.read()
 
