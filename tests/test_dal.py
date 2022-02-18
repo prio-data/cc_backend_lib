@@ -58,7 +58,7 @@ class TestSummaries(unittest.TestCase):
         self.scheduler.time_partition = time_partition
 
         async def user(id: int,*_,**__):
-            return Right(models.user.User(id = id))
+            return Right(models.user.UserListed(id = id))
 
         self.users        = users_client.UsersClient("http://foo.bar.baz")
         self.users.detail = user

@@ -50,7 +50,7 @@ class ApiClient(abc.ABC):
                             ))
 
     def _path(self, name: str) -> str:
-        return "/"+os.path.join(self._api_path,name)
+        return "/"+os.path.join(self._api_path,str(name))
 
     def _status_is_ok(self, status: int) -> bool:
         return status == 200
