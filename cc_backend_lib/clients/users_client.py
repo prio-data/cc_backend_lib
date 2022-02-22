@@ -1,5 +1,6 @@
 
 import json
+import base64
 from pymonad.either import Left, Right, Either
 from cc_backend_lib.errors import http_error
 from cc_backend_lib import models
@@ -48,4 +49,9 @@ class UsersClient(model_api_client.ModelApiClient[models.user.UserDetail, models
                 json = models.user.EmailStatus(has_unsubscribed = status).dict())
         return result.then(lambda data: models.user.UserEmailStatus(**json.loads(data)))
 
-
+    async def id_from_email(self, email: str) -> Either[http_error.HttpError, models.user.UserDetail]:
+        encoded_email = base64.b16encode(email.encode()).decode()
+        result = await self._request("get",
+                self._path("") + f"whois-email/{encoded_email}",
+                parameters = self._parameters({}))
+        return result.then(lambda data: models.user.UserIdentification(**json.loads(data)))
