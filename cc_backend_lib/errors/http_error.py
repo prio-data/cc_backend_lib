@@ -2,7 +2,7 @@
 from typing import Optional
 import datetime
 from pydantic import BaseModel, validator, ConstrainedInt
-from pydantic import HttpUrl
+from pydantic import AnyHttpUrl
 
 class HttpCode(ConstrainedInt):
     ge = 100
@@ -11,7 +11,7 @@ class HttpCode(ConstrainedInt):
 class HttpError(BaseModel):
     http_code: HttpCode
     message:   str               = ""
-    url:       Optional[HttpUrl]
+    url:       Optional[AnyHttpUrl]
     time:      Optional[datetime.datetime] = None
 
     @validator("time")
