@@ -11,9 +11,10 @@ class MailjetEmailer(emailer.Emailer):
             from_name: str,
             api_key: str,
             api_secret: str,
+            api_url: str = "https://api.mailjet.com",
             version: str = "v3.1"):
         super().__init__(from_address, from_name)
-        self._client = mailjet_rest.Client(auth = (api_key, api_secret), version = version)
+        self._client = mailjet_rest.Client(auth = (api_key, api_secret), version = version, api_url = api_url)
 
     def send(self, subject:  str, to_email: str, text_content:  str, html_content: str, to_name:  str = "user"):
         data = mailjet_models.SendData(Messages = [
