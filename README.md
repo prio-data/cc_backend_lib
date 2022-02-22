@@ -1,7 +1,7 @@
 
 # CC Backend Library 
 
-![tests status](https://github.com/prio-data/cc_backend_lib/actions/workflows/test.yml/badge.svg)
+![Build](https://github.com/prio-data/cc_backend_lib/actions/workflows/pypi.yml/badge.svg)
 
 This library contains several classes and data models that are useful when
 writing services that interact with other services in Conflict Cartographer. In
