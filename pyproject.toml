@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cc_backend_lib"
-version = "0.15.1"
+version = "0.16.0"
 description = "A library with classes and types used througout the backend for Conflict Cartographer"
 readme = "README.md"
 homepage = "https://www.github.com/prio-data/cc_backend_lib"
