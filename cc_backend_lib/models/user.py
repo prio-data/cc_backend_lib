@@ -22,7 +22,7 @@ class EmailStatus(BaseModel):
     has_unsubscribed: Optional[bool] = None
 
 class EmailCooldownStatus(BaseModel):
-    last_mailed: Optional[datetime.datetime] = None
+    last_mailed: Optional[datetime.date] = None
 
 class Scrubbable:
     class Meta:
