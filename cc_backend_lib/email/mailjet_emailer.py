@@ -34,4 +34,3 @@ class MailjetEmailer(emailer.Emailer):
             ])
 
         result = self._client.send.create(data = data.dict())
-        logger.info(result.json())
