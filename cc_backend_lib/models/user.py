@@ -80,7 +80,7 @@ class UserEmailStatus(UserIdentification, EmailStatus):
     POSTed and GETed from the email subscription endpoint.
     """
 
-class UserEmailStatusAdmin(UserIdentification, EmailCooldownStatus, EmailStatus):
+class UserEmailStatusAdmin(UserPersonIdentification, EmailCooldownStatus, EmailStatus):
     """
     Used by cc_api when managing user email status.
     """
