@@ -14,13 +14,15 @@ class UserParticipation(BaseModel):
     last_login:         Optional[datetime.datetime] = None
     assigned_countries: Optional[List[int]]         = None
     submitted_metadata: Optional[Dict[str, str]]    = None
-    last_mailed:        Optional[datetime.datetime] = None
 
 class WaiverStatus(BaseModel):
-    has_signed_waiver:  Optional[bool]              = None
+    has_signed_waiver: Optional[bool] = None
 
 class EmailStatus(BaseModel):
-    has_unsubscribed:   Optional[bool]
+    has_unsubscribed: Optional[bool] = None
+
+class EmailCooldownStatus(BaseModel):
+    last_mailed: Optional[datetime.datetime] = None
 
 class Scrubbable:
     class Meta:
@@ -44,7 +46,8 @@ class UserDetail(
         UserParticipation,
         Scrubbable,
         WaiverStatus,
-        EmailStatus):
+        EmailStatus,
+        EmailCooldownStatus):
     class Meta:
         person_identifiable_fields = [
                 "name",
